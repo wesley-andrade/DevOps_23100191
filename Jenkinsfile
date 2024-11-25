@@ -1,45 +1,23 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKER_IMAGE_NAME = 'trabalhodevops_flask_app'
-        DOCKER_REGISTRY = 'docker.io'
-        DOCKER_TAG = 'latest'
-    }
-
     stages {
-        stage('Baixar Código do Git') {
+        stage('Build') {
             steps {
                 script {
-                    // Clonar o repositório do Git
-                    git branch: 'main', url: 'https://github.com/wesley-andrade/DevOps_23100191.git'
+                    sh 'docker compose down -v'
+                    sh 'docker compose build'
                 }
             }
         }
 
-        stage('Build e Deploy') {
+        stage('Start') {
             steps {
                 script {
-                    // Construir a imagem Docker para a aplicação
-                    sh "docker build -t ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG} ."
-
-                    // Subir o ambiente Docker
-                    sh "docker-compose up --build -d"
-                    
-                    // Verificar os containers em execução
-                    sh 'docker ps'
+                    sh 'docker compose up -d'
                 }
             }
         }
     }
 
-    post {
-        success {
-            echo 'Pipeline finalizada com sucesso!'
-        }
-
-        failure {
-            echo 'Houve um erro na pipeline.'
-        }
-    }
 }
