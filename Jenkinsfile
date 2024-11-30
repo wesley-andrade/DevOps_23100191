@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        REPO_URL = 'https://github.com/wesley-andrade/Trabalho_DevOps_23100191.git' // URL do repositório
+        REPO_URL = 'https://github.com/wesley-andrade/Trabalho_DevOps_23100191.git'  // URL do repositório
         BRANCH_NAME = 'main'                                                      // Nome do branch
         DOCKER_COMPOSE = 'docker-compose'                                         // Comando para Docker Compose
     }
@@ -14,23 +14,40 @@ pipeline {
             }
         }
 
-        stage('Subir Serviços') {
+        stage('Rodar Testes') {
             steps {
                 script {
-                    sh "${DOCKER_COMPOSE} up -d"  // Subir serviços em segundo plano
+                    // Rodar os testes criados para a aplicação
+                    sh 'python3 -m unittest discover tests'  // Comando para rodar os testes com unittest
                 }
             }
         }
 
-        stage('Executar Testes') {
+        stage('Build e Deploy') {
             steps {
                 script {
-                    // Esperar os containers subirem
-                    sh 'sleep 20'
+                    // Parar os containers se já estiverem rodando
+                    sh 'docker-compose down'
 
-                    // Executar os testes no container Flask
+                    // Construir as imagens Docker e subir os containers
+                    sh 'docker-compose up --build -d'  // Subir ambiente com Docker Compose
+                }
+            }
+        }
+
+        stage('Verificar Monitoramento') {
+            steps {
+                script {
+                    // Verificar se o serviço está rodando no Prometheus
                     sh """
-                    ${DOCKER_COMPOSE} exec flask_app python -m unittest /app/tests/test_app.py
+                    for i in {1..10}; do
+                        if curl -s http://localhost:9090/ > /dev/null; then
+                            echo "Monitoramento do Prometheus funcionando."
+                            break
+                        fi
+                        echo "Aguardando Prometheus iniciar..."
+                        sleep 5
+                    done
                     """
                 }
             }
@@ -39,8 +56,7 @@ pipeline {
 
     post {
         always {
-            echo "Finalizando pipeline e desmontando containers."
-            sh "${DOCKER_COMPOSE} down -v"  // Remover containers e volumes
+            echo "Pipeline finalizada."
         }
         success {
             echo "Pipeline executada com sucesso!"
