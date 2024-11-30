@@ -14,11 +14,20 @@ pipeline {
             }
         }
 
+        stage('Instalar Dependências') {
+            steps {
+                script {
+                    // Instalar as dependências diretamente no ambiente Jenkins
+                    sh 'pip install -r requirements.txt'
+                }
+            }
+        }
+
         stage('Rodar Testes') {
             steps {
                 script {
-                    // Rodar os testes criados para a aplicação
-                    sh 'python3 -m unittest discover tests'  // Comando para rodar os testes com unittest
+                    // Rodar os testes
+                    sh 'python3 -m unittest discover tests'
                 }
             }
         }
@@ -30,7 +39,7 @@ pipeline {
                     sh 'docker-compose down'
 
                     // Construir as imagens Docker e subir os containers
-                    sh 'docker-compose up --build -d'  // Subir ambiente com Docker Compose
+                    sh 'docker-compose up --build -d'
                 }
             }
         }
