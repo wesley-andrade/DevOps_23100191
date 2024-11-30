@@ -14,6 +14,13 @@ pipeline {
             }
         }
 
+        stage('Verificar Python e pip') {
+            steps {
+                sh 'python3 --version'
+                sh 'pip --version'
+            }
+        }
+
         stage('Instalar Dependências') {
             steps {
                 script {
@@ -26,8 +33,8 @@ pipeline {
         stage('Rodar Testes') {
             steps {
                 script {
-                    // Rodar os testes
-                    sh 'python3 -m unittest discover tests'
+                    // Rodar os testes dentro do container
+                    sh '${DOCKER_COMPOSE} exec flask_app python -m unittest discover /app/tests'
                 }
             }
         }
@@ -35,11 +42,11 @@ pipeline {
         stage('Build e Deploy') {
             steps {
                 script {
-                    // Parar os containers se já estiverem rodando
-                    sh 'docker-compose down'
+                    // Parar e remover os containers existentes
+                    sh '${DOCKER_COMPOSE} down --volumes --remove-orphans'
 
                     // Construir as imagens Docker e subir os containers
-                    sh 'docker-compose up --build -d'
+                    sh '${DOCKER_COMPOSE} up --build -d'
                 }
             }
         }
