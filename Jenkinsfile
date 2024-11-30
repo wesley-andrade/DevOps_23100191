@@ -13,23 +13,23 @@ pipeline {
                 script {
                     // Clonar o repositório
                     git branch: "${BRANCH_NAME}", url: "${REPO_URL}"
-                    
+
                     // Remover containers antigos e garantir que não há volumes antigos
                     sh "${DOCKER_COMPOSE} down -v"
                     sh "${DOCKER_COMPOSE} build --no-cache"
+
+                    // Subindo os containers necessários para o teste
+                    sh "${DOCKER_COMPOSE} up -d mariadb flask prometheus grafana"
+                    
+                    // Espera até que os serviços estejam prontos (use uma verificação melhor)
+                    sh 'sleep 30' // Apenas exemplo, considere uma verificação de readiness.
                 }
             }
         }
 
-        stage('Subir Contêineres e Executar Testes') {
+        stage('Executar Testes') {
             steps {
                 script {
-                    // Subindo os containers necessários para o teste
-                    sh "${DOCKER_COMPOSE} up -d mariadb flask prometheus grafana"
-
-                    // Esperar os containers subirem e estarem prontos
-                    sh 'sleep 45'  // Espera mais tempo para garantir que o banco de dados e o Flask estejam prontos
-
                     // Rodar os testes no container Flask
                     try {
                         sh "${DOCKER_COMPOSE} exec flask_app python -m unittest /app/tests/test_app.py"
@@ -41,14 +41,14 @@ pipeline {
             }
         }
 
-        stage('Verificar Status e Manter Ambiente') {
+        stage('Verificar Status dos Serviços') {
             steps {
                 script {
-                    // Verificar se os serviços estão de fato funcionando, como o Flask e o Prometheus
-                    sh 'curl -s http://localhost:9090/metrics'  // Verificar se o Prometheus está coletando métricas
+                    // Verificar se o Prometheus está coletando métricas
+                    sh 'curl -s http://localhost:9090/metrics'
 
-                    // Manter a aplicação rodando em segundo plano
-                    sh "${DOCKER_COMPOSE} up -d mariadb flask prometheus grafana"
+                    // Verificar se o Flask está rodando corretamente
+                    sh 'curl -s http://localhost:5000/health' // Supondo que tenha um endpoint de health check no Flask
                 }
             }
         }
