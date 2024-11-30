@@ -1,4 +1,4 @@
-# Dockerfile (Flask AppBuilder)
+# Dockerfile_flask
 FROM python:3.9-slim
 
 WORKDIR /app
@@ -6,7 +6,9 @@ WORKDIR /app
 COPY requirements.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-#COPY . .
+# Copiar o código da aplicação Flask para dentro do contêiner
 COPY app.py /app/
+# Copiar a pasta de testes para dentro do contêiner
+COPY tests /app/tests
 
 CMD ["flask", "run", "--host=0.0.0.0"]
