@@ -17,14 +17,27 @@ pipeline {
         stage('Build e Deploy') {
             steps {
                 script {
-                    // Construir as imagens Docker para cada serviço
-                    sh '''
-                        docker-compose build
-                    '''
-
                     // Subir os containers do Docker com Docker Compose
                     sh '''
-                        docker-compose up -d
+                        docker-compose up --build -d
+                    '''
+                }
+            }
+        }
+
+        stage('Verificar MariaDB') {
+            steps {
+                script {
+                    // Esperar MariaDB ficar disponível
+                    sh '''
+                        for i in {1..20}; do
+                            if docker-compose exec mariadb_container mysqladmin -u root -proot_password ping --silent; then
+                                echo "MariaDB está pronto."
+                                break
+                            fi
+                            echo "Aguardando MariaDB iniciar..."
+                            sleep 5
+                        done
                     '''
                 }
             }
@@ -33,9 +46,6 @@ pipeline {
         stage('Rodar Testes') {
             steps {
                 script {
-                    // Aguardar o serviço ser iniciado
-                    sh 'sleep 40' 
-
                     // Rodar os testes dentro do container Flask
                     sh '''
                         docker-compose exec flask_app python3 -m unittest discover /app/tests
