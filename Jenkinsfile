@@ -4,28 +4,28 @@ pipeline {
     environment {
         REPO_URL = 'https://github.com/wesley-andrade/Trabalho_DevOps_23100191.git'  // URL do repositório
         BRANCH_NAME = 'main'                                                      // Nome do branch
-        DOCKER_COMPOSE = 'docker-compose'                                         // Comando para Docker Compose
     }
 
     stages {
         stage('Baixar código do Git') {
             steps {
+                // Clonar o repositório do Git
                 git branch: "${BRANCH_NAME}", url: "${REPO_URL}"
             }
         }
 
-        stage('Verificar Python e pip') {
-            steps {
-                sh 'python3 --version'
-                sh 'pip --version'
-            }
-        }
-
-        stage('Instalar Dependências') {
+        stage('Build e Deploy') {
             steps {
                 script {
-                    // Instalar as dependências diretamente no ambiente Jenkins
-                    sh 'pip install -r requirements.txt'
+                    // Construir as imagens Docker para cada serviço
+                    sh '''
+                        docker-compose build
+                    '''
+
+                    // Subir os containers do Docker com Docker Compose
+                    sh '''
+                        docker-compose up -d
+                    '''
                 }
             }
         }
@@ -33,52 +33,24 @@ pipeline {
         stage('Rodar Testes') {
             steps {
                 script {
-                    // Rodar os testes dentro do container
-                    sh '${DOCKER_COMPOSE} exec flask_app python -m unittest discover /app/tests'
-                }
-            }
-        }
+                    // Aguardar o serviço ser iniciado
+                    sh 'sleep 40' 
 
-        stage('Build e Deploy') {
-            steps {
-                script {
-                    // Parar e remover os containers existentes
-                    sh '${DOCKER_COMPOSE} down --volumes --remove-orphans'
-
-                    // Construir as imagens Docker e subir os containers
-                    sh '${DOCKER_COMPOSE} up --build -d'
-                }
-            }
-        }
-
-        stage('Verificar Monitoramento') {
-            steps {
-                script {
-                    // Verificar se o serviço está rodando no Prometheus
-                    sh """
-                    for i in {1..10}; do
-                        if curl -s http://localhost:9090/ > /dev/null; then
-                            echo "Monitoramento do Prometheus funcionando."
-                            break
-                        fi
-                        echo "Aguardando Prometheus iniciar..."
-                        sleep 5
-                    done
-                    """
+                    // Rodar os testes dentro do container Flask
+                    sh '''
+                        docker-compose exec flask_app python3 -m unittest discover /app/tests
+                    '''
                 }
             }
         }
     }
 
     post {
-        always {
-            echo "Pipeline finalizada."
-        }
         success {
-            echo "Pipeline executada com sucesso!"
+            echo 'Pipeline executada com sucesso!'
         }
         failure {
-            echo "Pipeline falhou. Verifique os logs."
+            echo 'A pipeline falhou.'
         }
     }
 }
