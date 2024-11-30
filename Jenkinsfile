@@ -5,50 +5,50 @@ pipeline {
         REPO_URL = 'https://github.com/wesley-andrade/Trabalho_DevOps_23100191.git'
         BRANCH_NAME = 'main'
         DOCKER_COMPOSE = 'docker-compose'
+        DOCKER_IMAGE_TAG = 'latest'
     }
 
     stages {
-        stage('Preparar Ambiente e Clonar Repositório') {
+        stage('Baixar código do Git') {
             steps {
-                script {
-                    // Clonar o repositório
-                    git branch: "${BRANCH_NAME}", url: "${REPO_URL}"
-
-                    // Remover containers antigos e garantir que não há volumes antigos
-                    sh "${DOCKER_COMPOSE} down -v"
-                    sh "${DOCKER_COMPOSE} build --no-cache"
-
-                    // Subindo os containers necessários para o teste
-                    sh "${DOCKER_COMPOSE} up -d mariadb flask_app prometheus grafana"
-                    
-                    // Espera até que os serviços estejam prontos (use uma verificação melhor)
-                    sh 'sleep 30' // Apenas exemplo, considere uma verificação de readiness.
-                }
+                git branch: "${BRANCH_NAME}", url: "${REPO_URL}"
             }
         }
 
-        stage('Executar Testes') {
+        stage('Rodar Testes') {
             steps {
                 script {
-                    // Rodar os testes no container Flask
                     try {
-                        sh "${DOCKER_COMPOSE} exec flask_app python -m unittest /app/tests/test_app.py"
+                        sh "${DOCKER_COMPOSE} up -d mariadb flask_app"
+                        sh """
+                        for i in {1..10}; do
+                            if curl -s http://localhost:5000/health > /dev/null; then
+                                echo "Flask está pronto."
+                                break
+                            fi
+                            echo "Aguardando o Flask iniciar..."
+                            sleep 5
+                        done
+                        """
+                        sh "${DOCKER_COMPOSE} exec flask_app python -m unittest discover -s /app/tests -p 'test_*.py' -v"
                     } catch (Exception e) {
                         currentBuild.result = 'FAILURE'
-                        error "Os testes falharam! A pipeline foi interrompida."
+                        error "Os testes falharam: ${e.message}"
                     }
                 }
             }
         }
 
-        stage('Verificar Status dos Serviços') {
+        stage('Build e Deploy') {
             steps {
                 script {
-                    // Verificar se o Prometheus está coletando métricas
-                    sh 'curl -s http://localhost:9090/metrics'
-
-                    // Verificar se o Flask está rodando corretamente
-                    sh 'curl -s http://localhost:5000/health' // Supondo que tenha um endpoint de health check no Flask
+                    try {
+                        sh "${DOCKER_COMPOSE} build --no-cache"
+                        sh "${DOCKER_COMPOSE} up -d mariadb flask_app prometheus grafana"
+                        sh 'curl -s http://localhost:9090/metrics || exit 1'
+                    } catch (Exception e) {
+                        error "Erro durante o build ou deploy: ${e.message}"
+                    }
                 }
             }
         }
@@ -56,17 +56,14 @@ pipeline {
 
     post {
         always {
-            // Realizar limpeza após a execução
             echo "Pipeline finalizada."
+            sh "${DOCKER_COMPOSE} down -v"
         }
         success {
-            // Caso tudo tenha ocorrido bem
             echo "Pipeline executada com sucesso!"
         }
         failure {
-            // Em caso de falha, parar os containers e volumes
-            sh "${DOCKER_COMPOSE} down -v"
-            echo "Pipeline falhou. Todos os containers foram parados e removidos."
+            echo "Pipeline falhou."
         }
     }
 }
