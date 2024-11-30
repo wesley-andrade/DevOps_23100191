@@ -19,7 +19,7 @@ pipeline {
                     sh "${DOCKER_COMPOSE} build --no-cache"
 
                     // Subindo os containers necessários para o teste
-                    sh "${DOCKER_COMPOSE} up -d mariadb flask prometheus grafana"
+                    sh "${DOCKER_COMPOSE} up -d mariadb flask_app prometheus grafana"
                     
                     // Espera até que os serviços estejam prontos (use uma verificação melhor)
                     sh 'sleep 30' // Apenas exemplo, considere uma verificação de readiness.
