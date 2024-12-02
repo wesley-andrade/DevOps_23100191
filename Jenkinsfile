@@ -14,6 +14,17 @@ pipeline {
             }
         }
 
+        stage('Rodar Testes') {
+            steps {
+                script {
+                    // Rodar os testes dentro do container Flask
+                    sh '''
+                        docker-compose exec flask_app python3 -m unittest discover /app/tests
+                    '''
+                }
+            }
+        }
+
         stage('Build e Deploy') {
             steps {
                 script {
@@ -38,17 +49,6 @@ pipeline {
                             echo "Aguardando MariaDB iniciar..."
                             sleep 5
                         done
-                    '''
-                }
-            }
-        }
-
-        stage('Rodar Testes') {
-            steps {
-                script {
-                    // Rodar os testes dentro do container Flask
-                    sh '''
-                        docker-compose exec flask_app python3 -m unittest discover /app/tests
                     '''
                 }
             }
