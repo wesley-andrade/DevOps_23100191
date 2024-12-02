@@ -1,0 +1,35 @@
+{
+    "panels": [
+      {
+        "type": "graph",
+        "title": "Acessos à Aplicação",
+        "targets": [
+          {
+            "expr": "flask_http_request_total",
+            "legendFormat": "{{method}} {{status}}"
+          }
+        ]
+      },
+      {
+        "type": "singlestat",
+        "title": "Conexões Ativas no MariaDB",
+        "targets": [
+          {
+            "expr": "mysql_global_status_threads_connected",
+            "legendFormat": "Conexões Ativas"
+          }
+        ]
+      },
+      {
+        "type": "graph",
+        "title": "Consultas por Segundo",
+        "targets": [
+          {
+            "expr": "rate(mysql_global_status_questions[1m])",
+            "legendFormat": "Queries"
+          }
+        ]
+      }
+    ]
+  }
+  
