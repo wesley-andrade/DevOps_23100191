@@ -1,0 +1,9 @@
+# Dockerfile para o Grafana
+FROM grafana/grafana:latest
+
+# Copiar os arquivos de provisionamento para o contêiner
+COPY provisioning/dashboards /etc/grafana/provisioning/dashboards
+COPY provisioning/datasources /etc/grafana/provisioning/datasources
+
+# Expor a porta padrão do Grafana
+EXPOSE 3000
