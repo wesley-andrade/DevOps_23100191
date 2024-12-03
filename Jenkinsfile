@@ -25,6 +25,16 @@ pipeline {
             }
         }
 
+        stage('Aguardar Containers Estarem Prontos') {
+            steps {
+                script {
+                    // Aguardar um tempo para garantir que os containers estejam prontos
+                    echo "Aguardando os containers estarem prontos..."
+                    sleep 40
+                }
+            }
+        }
+
         stage('Rodar Testes') {
             steps {
                 script {
