@@ -14,6 +14,17 @@ pipeline {
             }
         }
 
+        stage('Iniciar Containers') {
+            steps {
+                script {
+                    // Subir os containers do Docker com Docker Compose
+                    sh '''
+                        docker-compose up -d
+                    '''
+                }
+            }
+        }
+
         stage('Rodar Testes') {
             steps {
                 script {
@@ -28,27 +39,9 @@ pipeline {
         stage('Build e Deploy') {
             steps {
                 script {
-                    // Subir os containers do Docker com Docker Compose
+                    // Fazer o build e reiniciar os containers do Docker
                     sh '''
                         docker-compose up --build -d
-                    '''
-                }
-            }
-        }
-
-        stage('Verificar MariaDB') {
-            steps {
-                script {
-                    // Esperar MariaDB ficar disponível
-                    sh '''
-                        for i in {1..20}; do
-                            if docker-compose exec mariadb mysqladmin -u root -proot_password ping --silent; then
-                                echo "MariaDB está pronto."
-                                break
-                            fi
-                            echo "Aguardando MariaDB iniciar..."
-                            sleep 5
-                        done
                     '''
                 }
             }
