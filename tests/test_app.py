@@ -11,9 +11,13 @@ class TestCadastroAluno(unittest.TestCase):
             db.create_all()  # Cria as tabelas no banco de dados
 
     def tearDown(self):
-        """Limpa o banco de dados após cada teste"""
+        """Limpa o banco de dados após cada teste, mas só exclui o aluno adicionado"""
         with app.app_context():
-            db.drop_all()  # Apaga as tabelas após cada teste
+            # Exclui o aluno específico que foi adicionado no teste
+            aluno = Aluno.query.filter_by(ra='123456').first()
+            if aluno:
+                db.session.delete(aluno)
+                db.session.commit()
 
     def test_adicionar_aluno(self):
         """Testa a funcionalidade de adicionar um aluno"""
