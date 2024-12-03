@@ -40,7 +40,7 @@ pipeline {
                 script {
                     // Rodar os testes dentro do container Flask
                     sh '''
-                        docker-compose exec flask_app python3 -m unittest discover /app/tests
+                        docker-compose exec flask_app python3 -m unittest discover -s /app/tests -p "test_*.py"
                     '''
                 }
             }
