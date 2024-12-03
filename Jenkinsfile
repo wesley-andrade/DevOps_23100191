@@ -42,7 +42,7 @@ pipeline {
                     // Esperar MariaDB ficar disponível
                     sh '''
                         for i in {1..20}; do
-                            if docker-compose exec mariadb_container mysqladmin -u root -proot_password ping --silent; then
+                            if docker-compose exec mariadb mysqladmin -u root -proot_password ping --silent; then
                                 echo "MariaDB está pronto."
                                 break
                             fi
