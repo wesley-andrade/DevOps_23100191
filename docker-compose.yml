@@ -1,4 +1,3 @@
-# docker-compose.yml
 version: "3.9"
 
 services:
@@ -45,12 +44,25 @@ services:
 
   grafana:
     image: grafana/grafana:latest
+    container_name: grafana_container
     ports:
       - "3000:3000"
     volumes:
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
       - grafana_data:/var/lib/grafana
     depends_on:
       - prometheus
+
+  mysql_exporter:
+    image: prom/mysqld-exporter:latest
+    container_name: mysql_exporter
+    environment:
+      DATA_SOURCE_NAME: "flask_user:flask_password@mariadb:3306/school_db"
+    ports:
+      - "9104:9104"
+    depends_on:
+      - mariadb
 
 volumes:
   db_data:
