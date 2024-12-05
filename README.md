@@ -60,7 +60,7 @@ Certifique-se de ter os seguintes softwares instalados no sistema:
 
 2. Verifique os resultados no terminal. Certifique-se de que todos os testes passaram.
 
-   ![Teste Unitário](imgs/image.png)
+   ![Teste Unitário](imgs/teste.png)
 
 ## **Utilizando o Jenkins**
 
