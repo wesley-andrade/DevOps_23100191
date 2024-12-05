@@ -1,35 +1,97 @@
 {
-    "panels": [
-      {
-        "type": "graph",
-        "title": "Acessos à Aplicação",
-        "targets": [
-          {
-            "expr": "flask_http_request_total",
-            "legendFormat": "{{method}} {{status}}"
-          }
-        ]
-      },
-      {
-        "type": "singlestat",
-        "title": "Conexões Ativas no MariaDB",
-        "targets": [
-          {
-            "expr": "mysql_global_status_threads_connected",
-            "legendFormat": "Conexões Ativas"
-          }
-        ]
-      },
-      {
-        "type": "graph",
-        "title": "Consultas por Segundo",
-        "targets": [
-          {
-            "expr": "rate(mysql_global_status_questions[1m])",
-            "legendFormat": "Queries"
-          }
-        ]
+  "panels": [
+    {
+      "type": "graph",
+      "title": "Acessos à Aplicação (por Método e Status)",
+      "description": "Monitoramento em tempo real das requisições HTTP à aplicação Flask, separadas por método e status.",
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total[1m])) by (method, status)",
+          "legendFormat": "{{method}} {{status}}"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
       }
-    ]
-  }
-  
+    },
+    {
+      "type": "singlestat",
+      "title": "Conexões Ativas no MariaDB",
+      "description": "Número atual de conexões ativas ao banco MariaDB.",
+      "targets": [
+        {
+          "expr": "mysql_global_status_threads_connected",
+          "legendFormat": "Conexões Ativas"
+        }
+      ],
+      "thresholds": "0,100",
+      "valueMappings": [
+        {
+          "value": "0",
+          "text": "Sem Conexões"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "graph",
+      "title": "Consultas ao Banco (por Segundo)",
+      "description": "Taxa de consultas SQL processadas pelo MariaDB nos últimos 60 segundos.",
+      "targets": [
+        {
+          "expr": "rate(mysql_global_status_questions[1m])",
+          "legendFormat": "Consultas por Segundo"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "type": "graph",
+      "title": "Tempo Médio de Resposta",
+      "description": "Média do tempo de resposta das requisições HTTP para a aplicação Flask.",
+      "targets": [
+        {
+          "expr": "rate(http_request_duration_seconds_sum[1m]) / rate(http_request_duration_seconds_count[1m])",
+          "legendFormat": "Tempo Médio"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 4,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "singlestat",
+      "title": "Erros HTTP 5xx",
+      "description": "Número de erros internos do servidor registrados nos últimos 60 segundos.",
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{status=~\"5..\"}[1m]))",
+          "legendFormat": "Erros 5xx"
+        }
+      ],
+      "thresholds": "0,10",
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 6,
+        "h": 4
+      }
+    }
+  ]
+}
