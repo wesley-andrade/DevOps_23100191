@@ -56,10 +56,11 @@ services:
 
   mysqld_exporter:
     image: prom/mysqld-exporter
-    environment:
-      - DATA_SOURCE_NAME=mysql://flask_user:flask_password@mariadb:3306/school_db
     ports:
       - "9104:9104"
+    command:
+      - "--mysqld.username=flask_user:flask_password"
+      - "--mysqld.address=mariadb:3306"
     depends_on:
       - mariadb
 
