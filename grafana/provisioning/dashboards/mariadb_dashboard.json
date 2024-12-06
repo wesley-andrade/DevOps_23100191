@@ -1,20 +1,20 @@
 {
   "panels": [
     {
-      "type": "graph",
+      "type": "singlestat",
       "title": "Acessos à Aplicação (por Método e Status)",
       "description": "Monitoramento em tempo real das requisições HTTP à aplicação Flask, separadas por método e status.",
       "targets": [
         {
-          "expr": "sum(rate(http_requests_total[1m])) by (method, status)",
+          "expr": "sum(prometheus_http_requests_total) by (method, status)",
           "legendFormat": "{{method}} {{status}}"
         }
       ],
       "gridPos": {
         "x": 0,
         "y": 0,
-        "w": 12,
-        "h": 8
+        "w": 8,
+        "h": 10
       }
     },
     {
@@ -35,14 +35,14 @@
         }
       ],
       "gridPos": {
-        "x": 12,
+        "x": 8,
         "y": 0,
-        "w": 6,
-        "h": 4
+        "w": 8,
+        "h": 10
       }
     },
     {
-      "type": "graph",
+      "type": "barchart",
       "title": "Consultas ao Banco (por Segundo)",
       "description": "Taxa de consultas SQL processadas pelo MariaDB nos últimos 60 segundos.",
       "targets": [
@@ -53,9 +53,9 @@
       ],
       "gridPos": {
         "x": 0,
-        "y": 8,
-        "w": 12,
-        "h": 8
+        "y": 10,
+        "w": 8,
+        "h": 10
       }
     },
     {
@@ -64,33 +64,15 @@
       "description": "Média do tempo de resposta das requisições HTTP para a aplicação Flask.",
       "targets": [
         {
-          "expr": "rate(http_request_duration_seconds_sum[1m]) / rate(http_request_duration_seconds_count[1m])",
+          "expr": "rate(prometheus_http_request_duration_seconds_sum[1m]) / rate(prometheus_http_request_duration_seconds_count[1m])",
           "legendFormat": "Tempo Médio"
         }
       ],
       "gridPos": {
-        "x": 12,
-        "y": 4,
-        "w": 6,
-        "h": 4
-      }
-    },
-    {
-      "type": "singlestat",
-      "title": "Erros HTTP 5xx",
-      "description": "Número de erros internos do servidor registrados nos últimos 60 segundos.",
-      "targets": [
-        {
-          "expr": "sum(rate(http_requests_total{status=~\"5..\"}[1m]))",
-          "legendFormat": "Erros 5xx"
-        }
-      ],
-      "thresholds": "0,10",
-      "gridPos": {
-        "x": 12,
-        "y": 8,
-        "w": 6,
-        "h": 4
+        "x": 8,
+        "y": 10,
+        "w": 8,
+        "h": 10
       }
     }
   ]
